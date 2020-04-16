@@ -3,26 +3,26 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>http://codekiller.net/posts/my-first-post/</loc>
+    <loc>https://codekiller.net/posts/my-first-post/</loc>
     <lastmod>2020-04-16T17:03:45+08:00</lastmod>
   </url>
   
   <url>
-    <loc>http://codekiller.net/</loc>
+    <loc>https://codekiller.net/</loc>
     <lastmod>2020-04-16T17:03:45+08:00</lastmod>
   </url>
   
   <url>
-    <loc>http://codekiller.net/posts/</loc>
+    <loc>https://codekiller.net/posts/</loc>
     <lastmod>2020-04-16T17:03:45+08:00</lastmod>
   </url>
   
   <url>
-    <loc>http://codekiller.net/categories/</loc>
+    <loc>https://codekiller.net/categories/</loc>
   </url>
   
   <url>
-    <loc>http://codekiller.net/tags/</loc>
+    <loc>https://codekiller.net/tags/</loc>
   </url>
   
 </urlset>

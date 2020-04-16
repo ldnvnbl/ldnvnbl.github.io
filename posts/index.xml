@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on My New Hugo Site</title>
-    <link>http://codekiller.net/posts/</link>
+    <link>https://codekiller.net/posts/</link>
     <description>Recent content in Posts on My New Hugo Site</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <lastBuildDate>Thu, 16 Apr 2020 17:03:45 +0800</lastBuildDate>
     
-	<atom:link href="http://codekiller.net/posts/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://codekiller.net/posts/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>My First Post</title>
-      <link>http://codekiller.net/posts/my-first-post/</link>
+      <link>https://codekiller.net/posts/my-first-post/</link>
       <pubDate>Thu, 16 Apr 2020 17:03:45 +0800</pubDate>
       
-      <guid>http://codekiller.net/posts/my-first-post/</guid>
+      <guid>https://codekiller.net/posts/my-first-post/</guid>
       <description></description>
     </item>
     
