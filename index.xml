@@ -1,8 +1,8 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>My New Hugo Site</title>
+    <title>CodeKiller</title>
     <link>https://codekiller.net/</link>
-    <description>Recent content on My New Hugo Site</description>
+    <description>Recent content on CodeKiller</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <lastBuildDate>Thu, 16 Apr 2020 17:03:45 +0800</lastBuildDate>
@@ -17,7 +17,7 @@
         <pubDate>Thu, 16 Apr 2020 17:03:45 +0800</pubDate>
         
         <guid>https://codekiller.net/posts/my-first-post/</guid>
-        <description>My New Hugo Site https://codekiller.net/posts/my-first-post/ -- https://codekiller.net/posts/my-first-post/ - </description>
+        <description>CodeKiller https://codekiller.net/posts/my-first-post/ -- https://codekiller.net/posts/my-first-post/ - </description>
         </item>
     
     
