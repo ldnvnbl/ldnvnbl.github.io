@@ -662,9 +662,7 @@ Ported from <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopene
             
             <div class="post-body-wrapper">
                 <div class="post-body">
-                    <p>golang 中，<code>defer</code>, <code>panic</code> 和 <code>recover</code> 会经常被用到，这三者配合使用可以实现其他语言 <code>try ... catch ...</code> 的效果。</p>
-<p>&lt;!–more–&gt;</p>
-<h2 id="认识-defer">认识 defer</h2>
+                    <h2 id="认识-defer">认识 defer</h2>
 <p><code>defer</code> 是 go 语言的一个关键字，在一个函数之前使用 defer，这个函数会在当前函数返回之后被调用。Defer 经常被用来做资源释放、日志打印、异常捕获。</p>
 <h3 id="多个-defer-函数的执行顺序-lifo">多个 defer 函数的执行顺序 (LIFO)</h3>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">b</span>() {

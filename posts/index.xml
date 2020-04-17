@@ -17,9 +17,7 @@
       <pubDate>Thu, 16 Apr 2020 23:12:35 +0800</pubDate>
       
       <guid>https://codekiller.net/posts/golang-defer-panic-recover/</guid>
-      <description>golang 中，defer, panic 和 recover 会经常被用到，这三者配合使用可以实现其他语言 try ... catch ... 的效果。
-&amp;lt;!–more–&amp;gt;
-认识 defer defer 是 go 语言的一个关键字，在一个函数之前使用 defer，这个函数会在当前函数返回之后被调用。Defer 经常被用来做资源释放、日志打印、异常捕获。
+      <description>认识 defer defer 是 go 语言的一个关键字，在一个函数之前使用 defer，这个函数会在当前函数返回之后被调用。Defer 经常被用来做资源释放、日志打印、异常捕获。
 多个 defer 函数的执行顺序 (LIFO) func b() { for i := 0; i &amp;lt; 4; i++ { defer fmt.Print(i) } } 该函数的打印结果是：3210，所以结论是：
  多个 defer 函数按调用顺序倒序执行，类似于压栈出栈操作，但是 defer 的底层并不是一个栈，而是一个链表。
  defer 函数参数预计算 func a() { i := 0 defer fmt.Println(i) i = 1 return } 上面这个例子会打印0，而不是1，所以结论是：
