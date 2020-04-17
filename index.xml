@@ -5,19 +5,148 @@
     <description>Recent content on CodeKiller</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 16 Apr 2020 17:03:45 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 16 Apr 2020 23:12:35 +0800</lastBuildDate>
     
         <atom:link href="https://codekiller.net/index.xml" rel="self" type="application/rss+xml" />
     
     
     
         <item>
-        <title>我是中国人</title>
-        <link>https://codekiller.net/posts/my-first-post/</link>
-        <pubDate>Thu, 16 Apr 2020 17:03:45 +0800</pubDate>
+        <title>Go 语言 Defer, Panic 和 Recover</title>
+        <link>https://codekiller.net/posts/golang-defer-panic-recover/</link>
+        <pubDate>Thu, 16 Apr 2020 23:12:35 +0800</pubDate>
         
-        <guid>https://codekiller.net/posts/my-first-post/</guid>
-        <description>CodeKiller https://codekiller.net/posts/my-first-post/ -- https://codekiller.net/posts/my-first-post/ - </description>
+        <guid>https://codekiller.net/posts/golang-defer-panic-recover/</guid>
+        <description>CodeKiller https://codekiller.net/posts/golang-defer-panic-recover/ -&lt;h2 id=&#34;认识-defer&#34;&gt;认识 defer&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;defer&lt;/code&gt; 是 go 语言的一个关键字，在一个函数之前使用 defer，这个函数会在当前函数返回之后被调用。Defer 经常被用来做资源释放、日志打印、异常捕获。&lt;/p&gt;
+&lt;h3 id=&#34;多个-defer-函数的执行顺序-lifo&#34;&gt;多个 defer 函数的执行顺序 (LIFO)&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-golang&#34; data-lang=&#34;golang&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;b&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt; &amp;lt; &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;; &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt; {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;defer&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Print&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt;)
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;该函数的打印结果是：3210，所以结论是：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;多个 defer 函数按调用顺序倒序执行，类似于压栈出栈操作，但是 defer 的底层并不是一个栈，而是一个链表。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;defer-函数参数预计算&#34;&gt;defer 函数参数预计算&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-golang&#34; data-lang=&#34;golang&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;a&lt;/span&gt;() {
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;defer&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt;)
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt; = &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;上面这个例子会打印0，而不是1，所以结论是：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;一个函数被 defer 的时候，它的参数会在当时立刻被计算出来，然后进行参数拷贝&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;defer-函数内部读写外部变量&#34;&gt;defer 函数内部读写外部变量&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-golang&#34; data-lang=&#34;golang&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;c&lt;/span&gt;() (&lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;) {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;defer&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;() { 
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// i 对于这个匿名函数来说是外部变量
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    }()
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+}
+&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;c&lt;/span&gt;())
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;上面这个例子会打印2，所以结论是：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;一个函数被 defer 的时候，它内部使用的外部变量，会在最终执行的时候计算&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;认识-panic&#34;&gt;认识 panic&lt;/h2&gt;
+&lt;p&gt;首先，&lt;code&gt;panic&lt;/code&gt; 是 go 语言的一个内置函数而不是一个关键字，&lt;code&gt;panic&lt;/code&gt; 可以停止当前 goroutinue 的正常运行，比如，一个 goroutinue 中有多层函数嵌套，内层函数调用 &lt;code&gt;panic&lt;/code&gt; 的时候，内层函数的正常执行被立即停止，该停止行为会层层传递给所有的外层函数（如果该 &lt;code&gt;panic&lt;/code&gt; 没有被 &lt;code&gt;recover&lt;/code&gt; 的话）, 并会导致整个程序 crash。&lt;/p&gt;
+&lt;h3 id=&#34;panic-和-defer&#34;&gt;panic 和 defer&lt;/h3&gt;
+&lt;p&gt;在 &lt;code&gt;defer&lt;/code&gt; 那一节讲到被 &lt;code&gt;defer&lt;/code&gt; 的函数会在调用函数 return 之后被执行，那么如果调用函数 &lt;code&gt;panic&lt;/code&gt; 的话，&lt;code&gt;defer&lt;/code&gt; 的函数还会被执行嘛？&lt;/p&gt;
+&lt;p&gt;直接上例子：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-golang&#34; data-lang=&#34;golang&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;f&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;defer&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;111&amp;#34;&lt;/span&gt;)
+    panic(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Panicking&amp;#34;&lt;/span&gt;)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;defer&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;222&amp;#34;&lt;/span&gt;) &lt;span style=&#34;color:#75715e&#34;&gt;// 该 defer 语句本身不会被执行
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;上面的例子打印结果如下：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;111
+panic: Panicking
+
+goroutine 1 [running]:
+main.f()
+        /xxx/gopath/src/xxx.go:30:25 +0x95
+main.main()
+        /xxx/gopath/src/xxx.go:30 +0x20
+
+Process finished with exit code 2
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;我们看到 111 被打印了出来，那么就说明：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;code&gt;panic&lt;/code&gt; 之后，被 defer 的函数仍然会被调用，并且是在 panic 打印堆栈之前。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;而 222 没有被打印出来，是因为还没来得及 defer，该函数就被 &lt;code&gt;panic&lt;/code&gt; 终止了。&lt;/p&gt;
+&lt;h2 id=&#34;认识-recover&#34;&gt;认识 recover&lt;/h2&gt;
+&lt;p&gt;和 &lt;code&gt;panic&lt;/code&gt; 一样，&lt;code&gt;recover&lt;/code&gt; 也是 go 语言的一个内置函数，上节说 &lt;code&gt;panic&lt;/code&gt; 会导致整个程序 crash，如果是线上程序发生 &lt;code&gt;panic&lt;/code&gt; 导致整个程序 crash，那就太危险了，那能不能即使发生 &lt;code&gt;panic&lt;/code&gt; 了，也不要让整个程序 crash 呢？答案就是使用 &lt;code&gt;recover&lt;/code&gt; 来”捕获“ &lt;code&gt;panic&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;正常使用 &lt;code&gt;recover&lt;/code&gt; 的方式：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-golang&#34; data-lang=&#34;golang&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt;
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;f&lt;/span&gt;()
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Returned normally from f.&amp;#34;&lt;/span&gt;)
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;f&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;defer&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;() {  &lt;span style=&#34;color:#75715e&#34;&gt;// 注意，recover 一定要放到 defer 函数里面
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;r&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; recover(); &lt;span style=&#34;color:#a6e22e&#34;&gt;r&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+            &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Recovered in f&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;r&lt;/span&gt;)
+        }
+    }()
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Calling g.&amp;#34;&lt;/span&gt;)
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;g&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;)
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Returned normally from g.&amp;#34;&lt;/span&gt;)
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;g&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;) {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt; &amp;gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt; {
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Panicking!&amp;#34;&lt;/span&gt;)
+        panic(&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Sprintf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%v&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt;))
+    }
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;defer&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Defer in g&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt;)
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Printing in g&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt;)
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;g&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;上面的程序输出如下：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Calling g.
+Printing in g 0
+Printing in g 1
+Printing in g 2
+Printing in g 3
+Panicking!
+Defer in g 3
+Defer in g 2
+Defer in g 1
+Defer in g 0
+Recovered in f 4
+Returned normally from f.
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;跨协程-recover-失效&#34;&gt;跨协程 recover 失效&lt;/h3&gt;
+&lt;p&gt;前几天面试腾讯的时候，面试官问到这样一个问题：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-golang&#34; data-lang=&#34;golang&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;f&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;defer&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;() {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;r&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; recover(); &lt;span style=&#34;color:#a6e22e&#34;&gt;r&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+            &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Recovered in f&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;r&lt;/span&gt;)
+        }
+    }()
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;() {
+        panic(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;panic....&amp;#34;&lt;/span&gt;)
+    }()
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这段代码中的 &lt;code&gt;recover&lt;/code&gt; 可以捕获下面的 &lt;code&gt;panic&lt;/code&gt; 嘛？&lt;/p&gt;
+&lt;p&gt;这段代码看似好像是函数嵌套调用发生的 &lt;code&gt;panic&lt;/code&gt;，但是这个 &lt;code&gt;panic&lt;/code&gt; 是发生在新起的另外一个 Goroutine 中的，所以答案是不能被 recover。&lt;/p&gt;
+&lt;p&gt;因为：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;多个 Goroutine 之间没有太多的关联，一个 Goroutine 不会管也不应该管另外一个 Goroutine 发生的事情。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;参考&#34;&gt;参考&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://blog.golang.org/defer-panic-and-recover&#34;&gt;https://blog.golang.org/defer-panic-and-recover&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+- https://codekiller.net/posts/golang-defer-panic-recover/ - </description>
         </item>
     
     

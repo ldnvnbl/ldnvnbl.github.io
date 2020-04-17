@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html><head>
+<title>Go 语言 Defer, Panic 和 Recover</title>
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+
+<script src="/vendor/js/jquery.min.js" ></script>
+<script src="/vendor/js/popper.min.js" ></script>
+<script src="/vendor/js/bootstrap.min.js" ></script>
+<script src="/vendor/js/smooth-scroll.polyfills.min.js" ></script>
+<link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<script src="/vendor/js/vue.min.js" ></script>
+
+
+
+
+<link rel="stylesheet" href="https://codekiller.net/scss/journal.min.890ce1dac4a6249787b8d59b5684c3ee5ffa5ede5cd0582e729330904025ca27.css" integrity="sha256-iQzh2sSmJJeHuNWbVoTD7l/6Xt5c0FgucpMwkEAlyic=" media="screen">
+
+
+
+<link rel="stylesheet" href="https://codekiller.net/scss/dark-mode.min.9a4e00c71ac21667161590d887c44544c37b1b719e9e12d219a7344235f0a8e1.css" integrity="sha256-mk4AxxrCFmcWFZDYh8RFRMN7G3GenhLSGac0QjXwqOE=" media="screen">
+
+
+<script src="https://codekiller.net//js/loadCSS.js"></script>
+<script>
+  loadCSS("https://fonts.googleapis.com/css?family=Lora|Montserrat|Fira+Mono|Noto+Serif+SC|Material+Icons");
+</script>
+
+<script src="https://codekiller.net//js/table.js"></script>
+
+
+
+
+<script src="https://codekiller.net//js/toc.js"></script>
+
+
+
+
+
+
+
+
+</head><body>
+    	<div id="app"><div ref="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://codekiller.net/">
+    
+        <div class="nav-title">
+            CodeKiller
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://amazingrise.net">Rise</a>
+<br>
+Ported from <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	2020 CodeKiller
+	
+    </div>
+    
+</div><div ref="extraContainer" class="extra-container">
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- CATALOG -</center>
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#%e8%ae%a4%e8%af%86-defer" v-on:click="closeDrawer" id="认识-defer-nav">
+										 认识 defer
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#%e5%a4%9a%e4%b8%aa-defer-%e5%87%bd%e6%95%b0%e7%9a%84%e6%89%a7%e8%a1%8c%e9%a1%ba%e5%ba%8f-lifo" v-on:click="closeDrawer" id="多个-defer-函数的执行顺序-lifo-nav">
+										 多个 defer 函数的执行顺序 (LIFO)
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#defer-%e5%87%bd%e6%95%b0%e5%8f%82%e6%95%b0%e9%a2%84%e8%ae%a1%e7%ae%97" v-on:click="closeDrawer" id="defer-函数参数预计算-nav">
+										 defer 函数参数预计算
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#defer-%e5%87%bd%e6%95%b0%e5%86%85%e9%83%a8%e8%af%bb%e5%86%99%e5%a4%96%e9%83%a8%e5%8f%98%e9%87%8f" v-on:click="closeDrawer" id="defer-函数内部读写外部变量-nav">
+										 defer 函数内部读写外部变量
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#%e8%ae%a4%e8%af%86-panic" v-on:click="closeDrawer" id="认识-panic-nav">
+										 认识 panic
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#panic-%e5%92%8c-defer" v-on:click="closeDrawer" id="panic-和-defer-nav">
+										 panic 和 defer
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#%e8%ae%a4%e8%af%86-recover" v-on:click="closeDrawer" id="认识-recover-nav">
+										 认识 recover
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#%e8%b7%a8%e5%8d%8f%e7%a8%8b-recover-%e5%a4%b1%e6%95%88" v-on:click="closeDrawer" id="跨协程-recover-失效-nav">
+										 跨协程 recover 失效
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#%e5%8f%82%e8%80%83" v-on:click="closeDrawer" id="参考-nav">
+										 参考
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a class="pagination-action" v-on:click="toggleDarkMode">
+            <i class="material-icons pagination-action-icon" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons pagination-action-icon" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </a>
+        
+        
+    </div>
+</div><div class="single-column-drawer-container" ref="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- CATALOG -</center>
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#%e8%ae%a4%e8%af%86-defer" v-on:click="closeDrawer" id="认识-defer-nav">
+										 认识 defer
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#%e5%a4%9a%e4%b8%aa-defer-%e5%87%bd%e6%95%b0%e7%9a%84%e6%89%a7%e8%a1%8c%e9%a1%ba%e5%ba%8f-lifo" v-on:click="closeDrawer" id="多个-defer-函数的执行顺序-lifo-nav">
+										 多个 defer 函数的执行顺序 (LIFO)
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#defer-%e5%87%bd%e6%95%b0%e5%8f%82%e6%95%b0%e9%a2%84%e8%ae%a1%e7%ae%97" v-on:click="closeDrawer" id="defer-函数参数预计算-nav">
+										 defer 函数参数预计算
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#defer-%e5%87%bd%e6%95%b0%e5%86%85%e9%83%a8%e8%af%bb%e5%86%99%e5%a4%96%e9%83%a8%e5%8f%98%e9%87%8f" v-on:click="closeDrawer" id="defer-函数内部读写外部变量-nav">
+										 defer 函数内部读写外部变量
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#%e8%ae%a4%e8%af%86-panic" v-on:click="closeDrawer" id="认识-panic-nav">
+										 认识 panic
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#panic-%e5%92%8c-defer" v-on:click="closeDrawer" id="panic-和-defer-nav">
+										 panic 和 defer
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#%e8%ae%a4%e8%af%86-recover" v-on:click="closeDrawer" id="认识-recover-nav">
+										 认识 recover
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#%e8%b7%a8%e5%8d%8f%e7%a8%8b-recover-%e5%a4%b1%e6%95%88" v-on:click="closeDrawer" id="跨协程-recover-失效-nav">
+										 跨协程 recover 失效
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+				
+				
+					
+						
+						
+							<ul>
+						
+							<ul>
+						
+						
+								<li>
+				 					<a href="#%e5%8f%82%e8%80%83" v-on:click="closeDrawer" id="参考-nav">
+										 参考
+									</a>
+								</li>
+						
+							</ul>
+						
+							</ul>
+						
+					
+				
+			
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav ref="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div ref="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a ref="navTitle" class="navbar-brand" href="https://codekiller.net/">
+            CodeKiller
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" v-on:click="toggleDarkMode">
+            <i class="material-icons" v-if="isDarkMode">
+                brightness_4
+            </i>
+            <i class="material-icons" v-else="isDarkMode">
+                brightness_7
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" ref="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://codekiller.net/">
+        <div class="single-column-header-title">CodeKiller</div>
+        
+
+    </a>
+</div>
+            <div id="content">
+<div ref="streamContainer" class="stream-container">
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+
+            <div class="post-head-wrapper-text-only"
+                 style="background-image: url('/')">
+                <div class="post-title">
+                    Go 语言 Defer, Panic 和 Recover
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2020-04-16 23:12
+                        </time>
+                        
+
+                        
+
+                        
+                            <i class="material-icons" style="">label</i>
+                            
+                                <a href="/tags/golang">golang</a>
+                                &nbsp;
+                            
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                <div class="post-body">
+                    <h2 id="认识-defer">认识 defer</h2>
+<p><code>defer</code> 是 go 语言的一个关键字，在一个函数之前使用 defer，这个函数会在当前函数返回之后被调用。Defer 经常被用来做资源释放、日志打印、异常捕获。</p>
+<h3 id="多个-defer-函数的执行顺序-lifo">多个 defer 函数的执行顺序 (LIFO)</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">b</span>() {
+    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#ae81ff">4</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+        <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#a6e22e">i</span>)
+    }
+}
+</code></pre></div><p>该函数的打印结果是：3210，所以结论是：</p>
+<blockquote>
+<p>多个 defer 函数按调用顺序倒序执行，类似于压栈出栈操作，但是 defer 的底层并不是一个栈，而是一个链表。</p>
+</blockquote>
+<h3 id="defer-函数参数预计算">defer 函数参数预计算</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">a</span>() {
+    <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>
+    <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">i</span>)
+    <span style="color:#a6e22e">i</span> = <span style="color:#ae81ff">1</span>
+    <span style="color:#66d9ef">return</span>
+}
+</code></pre></div><p>上面这个例子会打印0，而不是1，所以结论是：</p>
+<blockquote>
+<p>一个函数被 defer 的时候，它的参数会在当时立刻被计算出来，然后进行参数拷贝</p>
+</blockquote>
+<h3 id="defer-函数内部读写外部变量">defer 函数内部读写外部变量</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">c</span>() (<span style="color:#a6e22e">i</span> <span style="color:#66d9ef">int</span>) {
+    <span style="color:#66d9ef">defer</span> <span style="color:#66d9ef">func</span>() { 
+        <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span>  <span style="color:#75715e">// i 对于这个匿名函数来说是外部变量
+</span><span style="color:#75715e"></span>    }()
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>
+}
+<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">c</span>())
+</code></pre></div><p>上面这个例子会打印2，所以结论是：</p>
+<blockquote>
+<p>一个函数被 defer 的时候，它内部使用的外部变量，会在最终执行的时候计算</p>
+</blockquote>
+<h2 id="认识-panic">认识 panic</h2>
+<p>首先，<code>panic</code> 是 go 语言的一个内置函数而不是一个关键字，<code>panic</code> 可以停止当前 goroutinue 的正常运行，比如，一个 goroutinue 中有多层函数嵌套，内层函数调用 <code>panic</code> 的时候，内层函数的正常执行被立即停止，该停止行为会层层传递给所有的外层函数（如果该 <code>panic</code> 没有被 <code>recover</code> 的话）, 并会导致整个程序 crash。</p>
+<h3 id="panic-和-defer">panic 和 defer</h3>
+<p>在 <code>defer</code> 那一节讲到被 <code>defer</code> 的函数会在调用函数 return 之后被执行，那么如果调用函数 <code>panic</code> 的话，<code>defer</code> 的函数还会被执行嘛？</p>
+<p>直接上例子：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">f</span>() {
+    <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;111&#34;</span>)
+    panic(<span style="color:#e6db74">&#34;Panicking&#34;</span>)
+    <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;222&#34;</span>) <span style="color:#75715e">// 该 defer 语句本身不会被执行
+</span><span style="color:#75715e"></span>}
+</code></pre></div><p>上面的例子打印结果如下：</p>
+<pre><code>111
+panic: Panicking
+
+goroutine 1 [running]:
+main.f()
+        /xxx/gopath/src/xxx.go:30:25 +0x95
+main.main()
+        /xxx/gopath/src/xxx.go:30 +0x20
+
+Process finished with exit code 2
+</code></pre><p>我们看到 111 被打印了出来，那么就说明：</p>
+<blockquote>
+<p><code>panic</code> 之后，被 defer 的函数仍然会被调用，并且是在 panic 打印堆栈之前。</p>
+</blockquote>
+<p>而 222 没有被打印出来，是因为还没来得及 defer，该函数就被 <code>panic</code> 终止了。</p>
+<h2 id="认识-recover">认识 recover</h2>
+<p>和 <code>panic</code> 一样，<code>recover</code> 也是 go 语言的一个内置函数，上节说 <code>panic</code> 会导致整个程序 crash，如果是线上程序发生 <code>panic</code> 导致整个程序 crash，那就太危险了，那能不能即使发生 <code>panic</code> 了，也不要让整个程序 crash 呢？答案就是使用 <code>recover</code> 来”捕获“ <code>panic</code>。</p>
+<p>正常使用 <code>recover</code> 的方式：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#a6e22e">f</span>()
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Returned normally from f.&#34;</span>)
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">f</span>() {
+    <span style="color:#66d9ef">defer</span> <span style="color:#66d9ef">func</span>() {  <span style="color:#75715e">// 注意，recover 一定要放到 defer 函数里面
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> recover(); <span style="color:#a6e22e">r</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+            <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Recovered in f&#34;</span>, <span style="color:#a6e22e">r</span>)
+        }
+    }()
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Calling g.&#34;</span>)
+    <span style="color:#a6e22e">g</span>(<span style="color:#ae81ff">0</span>)
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Returned normally from g.&#34;</span>)
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">g</span>(<span style="color:#a6e22e">i</span> <span style="color:#66d9ef">int</span>) {
+    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">i</span> &gt; <span style="color:#ae81ff">3</span> {
+        <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Panicking!&#34;</span>)
+        panic(<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;%v&#34;</span>, <span style="color:#a6e22e">i</span>))
+    }
+    <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Defer in g&#34;</span>, <span style="color:#a6e22e">i</span>)
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Printing in g&#34;</span>, <span style="color:#a6e22e">i</span>)
+    <span style="color:#a6e22e">g</span>(<span style="color:#a6e22e">i</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)
+}
+</code></pre></div><p>上面的程序输出如下：</p>
+<pre><code>Calling g.
+Printing in g 0
+Printing in g 1
+Printing in g 2
+Printing in g 3
+Panicking!
+Defer in g 3
+Defer in g 2
+Defer in g 1
+Defer in g 0
+Recovered in f 4
+Returned normally from f.
+</code></pre><h3 id="跨协程-recover-失效">跨协程 recover 失效</h3>
+<p>前几天面试腾讯的时候，面试官问到这样一个问题：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">f</span>() {
+    <span style="color:#66d9ef">defer</span> <span style="color:#66d9ef">func</span>() {
+        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> recover(); <span style="color:#a6e22e">r</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+            <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Recovered in f&#34;</span>, <span style="color:#a6e22e">r</span>)
+        }
+    }()
+
+    <span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+        panic(<span style="color:#e6db74">&#34;panic....&#34;</span>)
+    }()
+}
+</code></pre></div><p>这段代码中的 <code>recover</code> 可以捕获下面的 <code>panic</code> 嘛？</p>
+<p>这段代码看似好像是函数嵌套调用发生的 <code>panic</code>，但是这个 <code>panic</code> 是发生在新起的另外一个 Goroutine 中的，所以答案是不能被 recover。</p>
+<p>因为：</p>
+<blockquote>
+<p>多个 Goroutine 之间没有太多的关联，一个 Goroutine 不会管也不应该管另外一个 Goroutine 发生的事情。</p>
+</blockquote>
+<h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://blog.golang.org/defer-panic-and-recover">https://blog.golang.org/defer-panic-and-recover</a></li>
+</ul>
+
+                    
+                    <HR width="100%" id="EOF">
+                    <p style="color:#777;">Last modified on 2020-04-16</p>
+                    
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts">
+                    Next<br>No newer posts.
+                </a>
+                
+                
+                
+                <a class="older-posts">
+                    Previous<br>No older posts.
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div><div id="single-column-footer">
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://amazingrise.net">Rise</a>
+<br>
+Ported from <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	2020 CodeKiller
+	</div>
+    	</div>
+    <script src="https://codekiller.net//js/journal.js"></script>
+    </body>
+</html>
