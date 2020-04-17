@@ -17,7 +17,9 @@
         <pubDate>Thu, 16 Apr 2020 23:12:35 +0800</pubDate>
         
         <guid>https://codekiller.net/posts/golang-defer-panic-recover/</guid>
-        <description>CodeKiller https://codekiller.net/posts/golang-defer-panic-recover/ -&lt;h2 id=&#34;认识-defer&#34;&gt;认识 defer&lt;/h2&gt;
+        <description>CodeKiller https://codekiller.net/posts/golang-defer-panic-recover/ -&lt;p&gt;golang 中，&lt;code&gt;defer&lt;/code&gt;, &lt;code&gt;panic&lt;/code&gt; 和 &lt;code&gt;recover&lt;/code&gt; 会经常被用到，这三者配合使用可以实现其他语言 &lt;code&gt;try ... catch ...&lt;/code&gt; 的效果。&lt;/p&gt;
+&lt;p&gt;&amp;lt;!–more–&amp;gt;&lt;/p&gt;
+&lt;h2 id=&#34;认识-defer&#34;&gt;认识 defer&lt;/h2&gt;
 &lt;p&gt;&lt;code&gt;defer&lt;/code&gt; 是 go 语言的一个关键字，在一个函数之前使用 defer，这个函数会在当前函数返回之后被调用。Defer 经常被用来做资源释放、日志打印、异常捕获。&lt;/p&gt;
 &lt;h3 id=&#34;多个-defer-函数的执行顺序-lifo&#34;&gt;多个 defer 函数的执行顺序 (LIFO)&lt;/h3&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-golang&#34; data-lang=&#34;golang&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;b&lt;/span&gt;() {
